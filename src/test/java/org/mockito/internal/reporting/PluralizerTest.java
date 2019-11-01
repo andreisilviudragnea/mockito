@@ -28,8 +28,8 @@ public class PluralizerTest extends TestBase {
 
     @Test
     public void pluralizes_stubbings() {
-        assertEquals("stubbings", Pluralizer.stubbings(0));
-        assertEquals("stubbing", Pluralizer.stubbings(1));
-        assertEquals("stubbings", Pluralizer.stubbings(100));
+        assertEquals("are exactly 0 stubbings", Pluralizer.are_x_stubbings(0));
+        assertEquals("is exactly 1 stubbing", Pluralizer.are_x_stubbings(1));
+        assertEquals("are exactly 100 stubbings", Pluralizer.are_x_stubbings(100));
     }
 }

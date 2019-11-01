@@ -18,7 +18,11 @@ public class Pluralizer {
         }
     }
 
-    public static String stubbings(int number) {
-        return number == 1 ? "stubbing" : "stubbings";
+    public static String are_x_stubbings(int x) {
+        if (x == 1) {
+            return "is exactly 1 stubbing";
+        } else {
+            return "are exactly " + x + " stubbings";
+        }
     }
 }
