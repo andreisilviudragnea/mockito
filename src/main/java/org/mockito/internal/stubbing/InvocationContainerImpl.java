@@ -19,6 +19,7 @@ import org.mockito.internal.verification.SingleRegisteredInvocation;
 import org.mockito.invocation.Invocation;
 import org.mockito.invocation.InvocationContainer;
 import org.mockito.invocation.MatchableInvocation;
+import org.mockito.listeners.AnswerInterceptor;
 import org.mockito.mock.MockCreationSettings;
 import org.mockito.quality.Strictness;
 import org.mockito.stubbing.Answer;
@@ -29,7 +30,7 @@ import org.mockito.stubbing.ValidableAnswer;
 public class InvocationContainerImpl implements InvocationContainer, Serializable {
 
     private static final long serialVersionUID = -5334301962749537177L;
-    private final LinkedList<StubbedInvocationMatcher> stubbed = new LinkedList<StubbedInvocationMatcher>();
+    private final LinkedList<StubbedInvocationMatcher> stubbed = new LinkedList<>();
     private final DoAnswerStyleStubbing doAnswerStyleStubbing;
     private final RegisteredInvocations registeredInvocations;
     private final Strictness mockStrictness;
@@ -64,21 +65,32 @@ public class InvocationContainerImpl implements InvocationContainer, Serializabl
      * Adds new stubbed answer and returns the invocation matcher the answer was added to.
      */
     public StubbedInvocationMatcher addAnswer(Answer answer, boolean isConsecutive, Strictness stubbingStrictness) {
-        Invocation invocation = invocationForStubbing.getInvocation();
         mockingProgress().stubbingCompleted();
         if (answer instanceof ValidableAnswer) {
-            ((ValidableAnswer) answer).validateFor(invocation);
+            ((ValidableAnswer) answer).validateFor(invocationForStubbing.getInvocation());
         }
+
+        Answer interceptedAnswer = interceptAnswer(answer);
 
         synchronized (stubbed) {
             if (isConsecutive) {
-                stubbed.getFirst().addAnswer(answer);
+                stubbed.getFirst().addAnswer(interceptedAnswer);
             } else {
                 Strictness effectiveStrictness = stubbingStrictness != null ? stubbingStrictness : this.mockStrictness;
-                stubbed.addFirst(new StubbedInvocationMatcher(answer, invocationForStubbing, effectiveStrictness));
+                stubbed.addFirst(new StubbedInvocationMatcher(interceptedAnswer, invocationForStubbing, effectiveStrictness));
             }
             return stubbed.getFirst();
         }
+    }
+
+    private Answer interceptAnswer(Answer answer) {
+        Answer interceptedAnswer = answer;
+
+        for (AnswerInterceptor<?> answerInterceptor : mockingProgress().answerInterceptors()) {
+            interceptedAnswer = answerInterceptor.apply(interceptedAnswer);
+        }
+
+        return interceptedAnswer;
     }
 
     Object answerTo(Invocation invocation) throws Throwable {

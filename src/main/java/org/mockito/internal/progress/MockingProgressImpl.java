@@ -11,6 +11,7 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.mockito.internal.configuration.GlobalConfiguration;
 import org.mockito.internal.debugging.Localized;
@@ -18,6 +19,7 @@ import org.mockito.internal.debugging.LocationImpl;
 import org.mockito.internal.exceptions.Reporter;
 import org.mockito.internal.listeners.AutoCleanableListener;
 import org.mockito.invocation.Location;
+import org.mockito.listeners.AnswerInterceptor;
 import org.mockito.listeners.MockCreationListener;
 import org.mockito.listeners.MockitoListener;
 import org.mockito.listeners.VerificationListener;
@@ -35,18 +37,14 @@ public class MockingProgressImpl implements MockingProgress {
     private Localized<VerificationMode> verificationMode;
     private Location stubbingInProgress = null;
     private VerificationStrategy verificationStrategy;
-    private final Set<MockitoListener> listeners = new LinkedHashSet<MockitoListener>();
+    private final Set<MockitoListener> listeners = new LinkedHashSet<>();
 
     public MockingProgressImpl() {
         this.verificationStrategy = getDefaultVerificationStrategy();
     }
 
     public static VerificationStrategy getDefaultVerificationStrategy() {
-        return new VerificationStrategy() {
-            public VerificationMode maybeVerifyLazily(VerificationMode mode) {
-                return mode;
-            }
-        };
+        return mode -> mode;
     }
 
     public void reportOngoingStubbing(OngoingStubbing ongoingStubbing) {
@@ -61,7 +59,7 @@ public class MockingProgressImpl implements MockingProgress {
 
     @Override
     public Set<VerificationListener> verificationListeners() {
-        final LinkedHashSet<VerificationListener> verificationListeners = new LinkedHashSet<VerificationListener>();
+        final LinkedHashSet<VerificationListener> verificationListeners = new LinkedHashSet<>();
 
         for (MockitoListener listener : listeners) {
             if (listener instanceof VerificationListener) {
@@ -72,6 +70,14 @@ public class MockingProgressImpl implements MockingProgress {
         return verificationListeners;
     }
 
+    @Override
+    public Set<AnswerInterceptor<?>> answerInterceptors() {
+        return listeners
+            .stream()
+            .filter(AnswerInterceptor.class::isInstance)
+            .map(obj -> (AnswerInterceptor<?>) obj)
+            .collect(Collectors.toCollection(LinkedHashSet::new));
+    }
 
     public void verificationStarted(VerificationMode verify) {
         validateState();
@@ -160,7 +166,7 @@ public class MockingProgressImpl implements MockingProgress {
     }
 
     static void addListener(MockitoListener listener, Set<MockitoListener> listeners) {
-        List<MockitoListener> delete = new LinkedList<MockitoListener>();
+        List<MockitoListener> delete = new LinkedList<>();
         for (MockitoListener existing : listeners) {
             if (existing.getClass().equals(listener.getClass())) {
                 if (existing instanceof AutoCleanableListener && ((AutoCleanableListener) existing).isListenerDirty()) {
