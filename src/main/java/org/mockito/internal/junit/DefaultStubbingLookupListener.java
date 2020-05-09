@@ -23,14 +23,14 @@ import org.mockito.stubbing.Stubbing;
  * Default implementation of stubbing lookup listener.
  * Fails early if stub called with unexpected arguments, but only if current strictness is set to STRICT_STUBS.
  */
-class DefaultStubbingLookupListener implements StubbingLookupListener, Serializable {
+public class DefaultStubbingLookupListener implements StubbingLookupListener, Serializable {
 
     private static final long serialVersionUID = -6789800638070123629L;
 
     private Strictness currentStrictness;
     private boolean mismatchesReported;
 
-    DefaultStubbingLookupListener(Strictness strictness) {
+    public DefaultStubbingLookupListener(Strictness strictness) {
         this.currentStrictness = strictness;
     }
 

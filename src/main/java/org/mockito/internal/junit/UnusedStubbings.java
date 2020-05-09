@@ -47,7 +47,7 @@ public class UnusedStubbings {
         return unused.toString();
     }
 
-    void reportUnused() {
+    public void reportUnused() {
         if (unused.isEmpty()) {
             return;
         }
