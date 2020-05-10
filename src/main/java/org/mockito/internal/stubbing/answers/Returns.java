@@ -58,4 +58,8 @@ public class Returns implements Answer<Object>, ValidableAnswer, Serializable {
     public String toString() {
         return "Returns: " + value;
     }
+
+    public Object getValue() {
+        return value;
+    }
 }

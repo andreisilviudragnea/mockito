@@ -60,4 +60,8 @@ public class StubbedInvocationMatcher extends InvocationMatcher implements Seria
     public Strictness getStrictness() {
         return strictness;
     }
+
+    public Queue<Answer> getAnswers() {
+        return answers;
+    }
 }
